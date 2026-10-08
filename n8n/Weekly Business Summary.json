@@ -1,0 +1,106 @@
+{
+  "name": "Weekly Business Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "95f81251-d75b-4873-869e-812f3130d193",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:8000/api/v1/analytics/summary",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0c5383ee-ba4b-4e01-9672-5eb3af2c0559",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "1205048950",
+        "text": "=📊 *Weekly Business Summary* _Week ending {{ $now.format('MMMM D, YYYY') }}_  💰 *Financial Overview:* - *Total Revenue:* ${{ $json.summary.total_revenue }} - *Total Expense:* ${{ $json.summary.total_expense }} - *Net Profit:* ${{ $json.summary.net_profit }} - *Current ROI:* {{ $json.summary.roi }}%  📈 *Growth Analysis:* - *Trend Direction:* {{ $json.growth.trend_direction }} - *Avg Revenue Growth:* {{ $json.growth.avg_revenue_growth }}% - *Avg Expense Growth:* {{ $json.growth.avg_expense_growth }}%  📅 *This Week's Activity:* - Total Transactions: {{ $json.summary.total_records }}  🎯 *Next Week's Focus:* Based on current trends, continue monitoring expense categories and maintain revenue momentum.  🔗 [Full Dashboard](http://localhost:5173)",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "24a0ab5e-2986-4f0c-a7ef-a7aadc3989ec",
+      "name": "Send a text message",
+      "webhookId": "8dfb3d94-9479-4d2b-8abc-bc62abbfcf91",
+      "credentials": {
+        "telegramApi": {
+          "id": "YeBxeiHkJxj7ESnP",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4b0ab335-60b9-46ca-9777-81ce49784b04",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e4a3971b7f18e8aa9dfc1ecafc7f0a51e619c26fd642f243b21d759861db8ffb"
+  },
+  "id": "eZY1842aGhlH2z1P",
+  "tags": []
+}

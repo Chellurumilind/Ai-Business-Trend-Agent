@@ -1,0 +1,222 @@
+{
+  "name": "Daily Business Health Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "72074aa3-747b-4d92-b01f-3221ffd5e577",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:8000/api/v1/analytics/summary",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dbeec5c8-c6e7-42e1-a433-f1075c792475",
+      "name": "Fetch Analytics"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5790e09d-6a1d-45ac-a82d-000bbcccb178",
+              "leftValue": "={{ $json.summary.roi }}",
+              "rightValue": 20,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "24ba422e-f325-4d8a-84e3-1a720bc76ad4",
+      "name": "Check ROI < 10%"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2afefa9-dfb0-426d-8db3-b7c44631594b",
+              "name": "=message",
+              "value": "`ROI is healthy at ${$json.summary.roi}%`",
+              "type": "string"
+            },
+            {
+              "id": "11059109-5d56-4e28-88c4-d623990c3a45",
+              "name": "=timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        112
+      ],
+      "id": "fee8ea42-25c9-453f-be60-1a7bd9c46f06",
+      "name": "Log Healthy ROI"
+    },
+    {
+      "parameters": {
+        "chatId": "1205048950",
+        "text": "=✅ *Daily Business Health Check* _{{ $now.format('dddd, MMMM D, YYYY') }}_  📊 *Current Performance:* - *ROI:* {{ $node[\"Fetch Analytics\"].json.summary.roi }}% - *Revenue:* ${{ $node[\"Fetch Analytics\"].json.summary.total_revenue }} - *Expense:* ${{ $node[\"Fetch Analytics\"].json.summary.total_expense }} - *Net Profit:* ${{ $node[\"Fetch Analytics\"].json.summary.net_profit }} - *Trend:* {{ $node[\"Fetch Analytics\"].json.growth.trend_direction }}  💰 *Financial Health:* - Total Transactions: {{ $node[\"Fetch Analytics\"].json.summary.total_records }} - Avg Growth: {{ $node[\"Fetch Analytics\"].json.growth.avg_revenue_growth }}%  ✨ *Status:* All metrics are healthy!  🔗 [View Dashboard](http://localhost:5173)",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        112
+      ],
+      "id": "9bd7d51c-a23e-4ea7-8340-1148142dc6de",
+      "name": "✅ HEALTHY STATUS",
+      "webhookId": "98ad3d9d-e0da-4130-ab5c-60eab9c15d0a",
+      "credentials": {
+        "telegramApi": {
+          "id": "YeBxeiHkJxj7ESnP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1205048950",
+        "text": "=🚨 *Low ROI Alert*  ROI: {{ $json.summary.roi }}% Revenue: ${{ $json.summary.total_revenue }} Expense: ${{ $json.summary.total_expense }} Net Profit: ${{ $json.summary.net_profit }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        -128
+      ],
+      "id": "c1d04a26-76cf-4316-9eff-149e6f49bc4d",
+      "name": "🚨 LOW ROI ALERT",
+      "webhookId": "c2f5783d-69f8-4d7c-a353-5e14925bfbd6",
+      "credentials": {
+        "telegramApi": {
+          "id": "YeBxeiHkJxj7ESnP",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Analytics": {
+      "main": [
+        [
+          {
+            "node": "Check ROI < 10%",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check ROI < 10%": {
+      "main": [
+        [
+          {
+            "node": "🚨 LOW ROI ALERT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Healthy ROI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Healthy ROI": {
+      "main": [
+        [
+          {
+            "node": "✅ HEALTHY STATUS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7389c434-6d5d-49d7-80c1-ee8ce1348c6f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e4a3971b7f18e8aa9dfc1ecafc7f0a51e619c26fd642f243b21d759861db8ffb"
+  },
+  "id": "vXkoDp11L6suV5Ld",
+  "tags": []
+}
